@@ -161,7 +161,7 @@ public class MainActivity extends Activity {
                                             toMinutes((long) startTime)))
             );
 
-            if(finalTime == startTime){
+            if(videoClase.getDuration() == videoClase.getCurrentPosition()){
                 startButton.setImageResource(R.mipmap.reload);
             }
         }
