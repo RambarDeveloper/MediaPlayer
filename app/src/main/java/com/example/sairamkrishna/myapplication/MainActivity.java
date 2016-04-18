@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -31,73 +32,52 @@ import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends Activity {
-    private Button b1,b2,b3,b4;
-    //private ImageView iv;
-    private MediaPlayer mediaPlayer;
+    private ImageButton startButton;
     private VideoView videoClase;
     private double startTime = 0;
     private double finalTime = 0;
-    private Handler myHandler = new Handler();;
-    private int forwardTime = 5000;
-    private int backwardTime = 5000;
+    private Handler myHandler = new Handler();
     private SeekBar seekbar;
-    private TextView tx1,tx2,tx3;
-
+    private TextView tx1;
     public static int oneTimeOnly = 0;
+    private Thread videoThread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        b1 = (Button) findViewById(R.id.button);
-        //b2 = (Button) findViewById(R.id.button2);
-        //b3=(Button)findViewById(R.id.button3);
-        //b4=(Button)findViewById(R.id.button4);
-        //iv=(ImageView)findViewById(R.id.imageView);
-
+        startButton = (ImageButton) findViewById(R.id.button);
         tx1=(TextView)findViewById(R.id.textView2);
-        tx2=(TextView)findViewById(R.id.textView3);
-        tx3=(TextView)findViewById(R.id.textView4);
-        tx3.setText("Song.mp3");
 
-        mediaPlayer = MediaPlayer.create(this, R.raw.the_cure);
+        //Creando nuevo hilo
+        //videoThread = new Thread();
+        //videoThread.start();
+
         videoClase = (VideoView) findViewById(R.id.videoClase);
         Uri URIVideo = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video_victor);
         videoClase.setVideoURI(URIVideo);
         seekbar=(SeekBar)findViewById(R.id.seekBar);
         seekbar.setClickable(true);
-        //prueba de loadVideo
-            videoClase.start();
-            finalTime = videoClase.getDuration();
-            startTime = videoClase.getCurrentPosition();
-             if (oneTimeOnly == 0) {
-                seekbar.setMax((int) finalTime);
-                 oneTimeOnly = 1;
-             }
-             tx2.setText(String.format("%d min, %d sec",
-                        TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
-                        TimeUnit.MILLISECONDS.toSeconds((long) finalTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime)))
-             );
+        setupListeners();
+
+        startButton.performClick();
 
 
-       // b2.setEnabled(false);
+    }
 
-        //cambio b3 por b1
-
-
-
-        b1.setOnClickListener(new View.OnClickListener() {
+    public void setupListeners(){
+        startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (videoClase.isPlaying()){
-                    Toast.makeText(getApplicationContext(), "Pausing sound",Toast.LENGTH_SHORT).show();
+                if (videoClase.isPlaying()) {
+                    Toast.makeText(getApplicationContext(), "Pausing sound", Toast.LENGTH_SHORT).show();
                     videoClase.pause();
-                    //b2.setEnabled(false);
-                    //b3.setEnabled(true);
-                }else {
-                    Toast.makeText(getApplicationContext(), "Playing sound",Toast.LENGTH_SHORT).show();
+                    startButton.setImageResource(R.mipmap.play_icon);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Playing sound", Toast.LENGTH_SHORT).show();
                     videoClase.start();
+                    startButton.setImageResource(R.mipmap.pause);
 
                     finalTime = videoClase.getDuration();
                     startTime = videoClase.getCurrentPosition();
@@ -106,55 +86,23 @@ public class MainActivity extends Activity {
                         seekbar.setMax((int) finalTime);
                         oneTimeOnly = 1;
                     }
-                    tx2.setText(String.format("%d min, %d sec",
-                                    TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
-                                    TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
-                                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime)))
-                    );
 
-                    tx1.setText(String.format("%d min, %d sec",
+                    tx1.setText(String.format("%d:%d",
                                     TimeUnit.MILLISECONDS.toMinutes((long) startTime),
                                     TimeUnit.MILLISECONDS.toSeconds((long) startTime) -
                                             TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime)))
                     );
 
-                    seekbar.setProgress((int)startTime);
-                    myHandler.postDelayed(UpdateSongTime,100);
+                    seekbar.setProgress((int) startTime);
+                    myHandler.postDelayed(UpdateSongTime, 100);
                 }
-
-                /*Toast.makeText(getApplicationContext(), "Playing sound",Toast.LENGTH_SHORT).show();
-                mediaPlayer.start();
-
-                finalTime = mediaPlayer.getDuration();
-                startTime = mediaPlayer.getCurrentPosition();
-
-                if (oneTimeOnly == 0) {
-                    seekbar.setMax((int) finalTime);
-                    oneTimeOnly = 1;
-                }
-                tx2.setText(String.format("%d min, %d sec",
-                                TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
-                                TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
-                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime)))
-                );
-
-                tx1.setText(String.format("%d min, %d sec",
-                                TimeUnit.MILLISECONDS.toMinutes((long) startTime),
-                                TimeUnit.MILLISECONDS.toSeconds((long) startTime) -
-                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime)))
-                );
-
-                seekbar.setProgress((int)startTime);
-                myHandler.postDelayed(UpdateSongTime,100);*/
             }
         });
-
-
 
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser){
+                if (fromUser) {
                     videoClase.seekTo(progress);
                 }
             }
@@ -170,47 +118,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        /*b2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Pausing sound",Toast.LENGTH_SHORT).show();
-                mediaPlayer.pause();
-                b2.setEnabled(false);
-                b3.setEnabled(true);
-            }
-        });*/
-
-        /*b1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int temp = (int)startTime;
-
-                if((temp+forwardTime)<=finalTime){
-                    startTime = startTime + forwardTime;
-                    mediaPlayer.seekTo((int) startTime);
-                    Toast.makeText(getApplicationContext(),"You have Jumped forward 5 seconds",Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Toast.makeText(getApplicationContext(),"Cannot jump forward 5 seconds",Toast.LENGTH_SHORT).show();
-                }
-            }
-        });*/
-
-        /*b4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int temp = (int)startTime;
-
-                if((temp-backwardTime)>0){
-                    startTime = startTime - backwardTime;
-                    mediaPlayer.seekTo((int) startTime);
-                    Toast.makeText(getApplicationContext(),"You have Jumped backward 5 seconds",Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Toast.makeText(getApplicationContext(),"Cannot jump backward 5 seconds",Toast.LENGTH_SHORT).show();
-                }
-            }
-        });*/
     }
 
     @Override
@@ -226,42 +133,46 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void loadVideo(){
-        videoClase.start();
 
-        finalTime = videoClase.getDuration();
-        startTime = videoClase.getCurrentPosition();
 
-        if (oneTimeOnly == 0) {
-            seekbar.setMax((int) finalTime);
-            oneTimeOnly = 1;
-        }
-        tx2.setText(String.format("%d min, %d sec",
-                        TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
-                        TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime)))
-        );
+    public void loadVideo(){
 
-        tx1.setText(String.format("%d min, %d sec",
-                        TimeUnit.MILLISECONDS.toMinutes((long) startTime),
-                        TimeUnit.MILLISECONDS.toSeconds((long) startTime) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime)))
-        );
-
-        seekbar.setProgress((int)startTime);
-        myHandler.postDelayed(UpdateSongTime,100);
     }
 
-    private Runnable UpdateSongTime = new Runnable() {
+    public Runnable UpdateSongTime = new Runnable() {
         public void run() {
+            finalTime=videoClase.getDuration();
+            seekbar.setMax((int)finalTime);
             startTime = videoClase.getCurrentPosition();
-            tx1.setText(String.format("%d min, %d sec",
+            if(TimeUnit.MILLISECONDS.toSeconds((long) startTime)<10){
+                tx1.setText(String.format("%d:0%d",
+
+                                TimeUnit.MILLISECONDS.toMinutes((long) startTime),
+                                TimeUnit.MILLISECONDS.toSeconds((long) startTime) -
+                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.
+                                                toMinutes((long) startTime)))
+                );
+            }else{
+            tx1.setText(String.format("%d:%d",
 
                             TimeUnit.MILLISECONDS.toMinutes((long) startTime),
                             TimeUnit.MILLISECONDS.toSeconds((long) startTime) -
                                     TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.
                                             toMinutes((long) startTime)))
             );
+
+            if(finalTime == startTime){
+                startButton.setImageResource(R.mipmap.reload);
+            }
+        }
+
+
+            /*tx2.setText(String.format("/%d:%d",
+                            TimeUnit.MILLISECONDS.toMinutes((long) finalTime),
+                            TimeUnit.MILLISECONDS.toSeconds((long) finalTime) -
+                                    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime)))
+            );*/
+
             seekbar.setProgress((int)startTime);
             myHandler.postDelayed(this, 100);
         }
